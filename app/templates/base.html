@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flask App</title>
+</head>
+<body>
+    <header>
+        <h1>Mathematical Methods</h1>
+        <nav>
+            <ul>
+                <li><a href="/">Home</a></li>
+                <li><a href="/graphical-method">Graphical Method</a></li>
+                <li><a href="/root-finding">Root-Finding Methods</a></li>
+                <li><a href="/gauss-seidel">Gauss-Seidel Method</a></li>
+                <li><a href="/lu-factorization">LU Factorization</a></li>
+                <li><a href="/polynomial-curve-fitting">Polynomial Curve Fitting</a></li>
+                <li><a href="/lagrange-interpolation">Lagrange’s Interpolation</a></li>
+                <li><a href="/euler-method">Euler’s Method</a></li>
+                <li><a href="/booles-rule">Boole’s Rule</a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>
