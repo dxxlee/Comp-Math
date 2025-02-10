@@ -1,6 +1,46 @@
-{% extends "base.html" %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LU Factorization</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; padding: 20px; }
+        textarea { width: 100%; height: 60px; margin-bottom: 10px; }
+        pre { background-color: #f4f4f4; padding: 10px; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <h2>LU Factorization</h2>
+    <form method="post">
+        <label>Enter matrix A (as a list of lists, e.g., [[4,-1,0],[-1,4,-1],[0,-1,4]]):</label>
+        <textarea name="matrix_A" required>[[4,-1,0],[-1,4,-1],[0,-1,4]]</textarea>
+        <br>
+        <label>Enter vector b (as a list, e.g., [15,10,10]):</label>
+        <textarea name="vector_b" required>[15,10,10]</textarea>
+        <br>
+        <button type="submit">Compute LU Factorization</button>
+    </form>
 
-{% block content %}
-<h2>LU Factorization</h2>
-<p>This page covers the LU factorization method for solving systems of linear equations.</p>
-{% endblock %}
+    {% if result %}
+        <h3>Results:</h3>
+        {% if result.error %}
+            <p style="color: red;">Error: {{ result.error }}</p>
+        {% else %}
+            <pre>
+Lower triangular matrix L:
+{{ result.L }}
+
+Upper triangular matrix U:
+{{ result.U }}
+
+Solution of Ax = b:
+{{ result.solution }}
+
+Check: A * x ≈ b
+{{ result.check }}
+            </pre>
+        {% endif %}
+    {% endif %}
+</body>
+</html>

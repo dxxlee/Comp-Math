@@ -1,5 +1,6 @@
-from flask import Blueprint, render_template
+from flask import Blueprint, render_template, request
 from app.utils.gauss_seidel import gauss_seidel
+from app.utils.lu_factorization import lu_factorization, solve_lu
 import numpy as np
 
 main = Blueprint('main', __name__)
@@ -33,9 +34,34 @@ def gauss_seidel_route():
     # Pass the solution and the flag to the template
     return render_template('gauss_seidel.html', solution=solution, has_solution=has_solution)
 
-@main.route('/lu-factorization')
-def lu_factorization():
-    return render_template('lu_factorization.html')
+@main.route('/lu_factorization', methods=['GET', 'POST'])
+def lu_factorization_route():
+    result = None
+    if request.method == 'POST':
+        try:
+            # Получаем данные от пользователя
+            A_input = request.form.get('matrix_A')
+            b_input = request.form.get('vector_b')
+
+            # Преобразуем строковый ввод в массивы numpy
+            A = np.array(eval(A_input), dtype=float)
+            b = np.array(eval(b_input), dtype=float)
+
+            # Вычисляем LU-разложение и решение системы
+            L, U = lu_factorization(A)
+            x = solve_lu(L, U, b)
+            check = np.dot(A, x)
+
+            result = {
+                'L': L.tolist(),
+                'U': U.tolist(),
+                'solution': x.tolist(),
+                'check': check.tolist()
+            }
+        except Exception as e:
+            result = {'error': str(e)}
+
+    return render_template('lu_factorization.html', result=result)
 
 @main.route('/polynomial-curve-fitting')
 def polynomial_curve_fitting():
