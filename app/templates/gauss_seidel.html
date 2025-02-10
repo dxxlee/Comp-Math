@@ -2,5 +2,12 @@
 
 {% block content %}
 <h2>Gauss-Seidel Method</h2>
-<p>This page explains the Gauss-Seidel iterative method for solving linear equations.</p>
+<p>This page solves the system of equations using the Gauss-Seidel method.</p>
+
+{% if has_solution %}
+<h3>Solution:</h3>
+<pre>{{ solution }}</pre>
+{% else %}
+<p>No solution found. The method did not converge.</p>
+{% endif %}
 {% endblock %}
