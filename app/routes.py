@@ -18,21 +18,48 @@ def root_finding():
     return render_template('root_finding.html')
 
 
-@main.route('/gauss-seidel')
+@main.route('/gauss-seidel', methods=['GET', 'POST'])
 def gauss_seidel_route():
-    # Define the system of equations
-    A = np.array([[4, 1, 1], [1, 5, 1], [1, 1, 6]], dtype=float)
-    b = np.array([12, 15, 10], dtype=float)
-    x0 = np.zeros(len(b))
+    result = None
+    error = None
+    matrix_size = 3  # Default matrix size
 
-    # Solve using Gauss-Seidel method
-    solution = gauss_seidel(A, b, x0, tol=1e-6, max_iter=100)
+    if request.method == 'POST':
+        try:
+            # Get matrix size from the form
+            matrix_size = int(request.form['matrix_size'])
 
-    # Check if the solution is valid (not None)
-    has_solution = solution is not None
+            # Parse coefficient matrix A
+            A = []
+            for i in range(matrix_size):
+                row = []
+                for j in range(matrix_size):
+                    value = float(request.form[f'A_{i}_{j}'])
+                    row.append(value)
+                A.append(row)
 
-    # Pass the solution and the flag to the template
-    return render_template('gauss_seidel.html', solution=solution, has_solution=has_solution)
+            # Parse right-hand side vector b
+            b = [float(request.form[f'b_{i}']) for i in range(matrix_size)]
+
+            # Parse initial guess x0
+            x0 = [float(request.form[f'x0_{i}']) for i in range(matrix_size)]
+
+            # Parse additional parameters
+            tol = float(request.form['tol'])
+            max_iter = int(request.form['max_iter'])
+
+            # Solve using Gauss-Seidel method
+            solution = gauss_seidel(np.array(A), np.array(b), np.array(x0), tol=tol, max_iter=max_iter)
+
+            if solution is not None:
+                result = f"Solution: {solution}"
+            else:
+                result = "No solution found. The method did not converge."
+
+        except Exception as e:
+            error = str(e)
+
+    return render_template('gauss_seidel.html', result=result, error=error, matrix_size=matrix_size)
 
 @main.route('/lu_factorization', methods=['GET', 'POST'])
 def lu_factorization_route():
