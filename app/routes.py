@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, request
 from app.utils.gauss_seidel import gauss_seidel
 from app.utils.lu_factorization import lu_factorization, solve_lu
 from app.utils.polynomial_curve_fitting import fit_polynomial
+from app.utils.lagrange_interpolation import lagrange_interpolation
 import numpy as np
 
 main = Blueprint('main', __name__)
@@ -125,9 +126,32 @@ def polynomial_fit_route():
 
     return render_template('polynomial_curve_fitting.html', result=result, error=error)
 
-@main.route('/lagrange-interpolation')
-def lagrange_interpolation():
-    return render_template('lagrange_interpolation.html')
+@main.route('/lagrange-interpolation', methods=['GET', 'POST'])
+def lagrange_interpolation_route():
+    result = None
+    error = None
+
+    if request.method == 'POST':
+        try:
+            # Get the number of points
+            num_points = int(request.form['num_points'])
+
+            # Parse input data
+            x_data = [float(request.form[f'x_{i}']) for i in range(num_points)]
+            y_data = [float(request.form[f'y_{i}']) for i in range(num_points)]
+            x_value = float(request.form['x_value'])
+
+            # Perform Lagrange interpolation
+            interpolated_value = lagrange_interpolation(x_data, y_data, x_value)
+            result = {
+                'x_value': x_value,
+                'interpolated_value': interpolated_value
+            }
+
+        except Exception as e:
+            error = str(e)
+
+    return render_template('lagrange_interpolation.html', result=result, error=error)
 
 @main.route('/euler-method')
 def euler_method():
