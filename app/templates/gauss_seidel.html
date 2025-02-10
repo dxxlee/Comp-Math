@@ -2,12 +2,165 @@
 
 {% block content %}
 <h2>Gauss-Seidel Method</h2>
-<p>This page solves the system of equations using the Gauss-Seidel method.</p>
+<form method="POST">
+    <h3>Input Coefficients for the System of Equations:</h3>
 
-{% if has_solution %}
-<h3>Solution:</h3>
-<pre>{{ solution }}</pre>
-{% else %}
-<p>No solution found. The method did not converge.</p>
+    <!-- Matrix Size Selector -->
+    <div>
+        <label for="matrix_size">Matrix Size (n x n):</label><br>
+        <select id="matrix_size" name="matrix_size">
+            <option value="2">2x2</option>
+            <option value="3" selected>3x3</option>
+            <option value="4">4x4</option>
+        </select>
+    </div>
+
+    <!-- Dynamic Matrix Input -->
+    <div id="matrix_input">
+        <h4>Coefficient Matrix (A):</h4>
+        <table>
+            {% for i in range(3) %}
+            <tr>
+                {% for j in range(3) %}
+                <td>
+                    <input type="number" step="any" name="A_{{i}}_{{j}}" placeholder="A[{{i}},{{j}}]">
+                </td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+
+    <!-- Right-hand Side Vector (b) -->
+    <div id="b_container">
+        <h4>Right-hand Side Vector (b):</h4>
+        <table id="b_table">
+            {% for i in range(3) %}
+            <tr>
+                <td>
+                    <input type="number" step="any" name="b_{{i}}" placeholder="b[{{i}}]">
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+
+    <!-- Initial Guess (x0) -->
+    <div id="x0_container">
+        <h4>Initial Guess (x0):</h4>
+        <table id="x0_table">
+            {% for i in range(3) %}
+            <tr>
+                <td>
+                    <input type="number" step="any" name="x0_{{i}}" placeholder="x0[{{i}}]">
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+
+    <!-- Additional Parameters -->
+    <div>
+        <label for="tol">Tolerance (tol):</label><br>
+        <input type="number" id="tol" name="tol" step="any" value="1e-6">
+    </div>
+    <div>
+        <label for="max_iter">Maximum Iterations:</label><br>
+        <input type="number" id="max_iter" name="max_iter" value="100">
+    </div>
+
+    <button type="submit">Execute Calculation</button>
+</form>
+
+{% if result %}
+<h3>Results:</h3>
+<pre>{{ result }}</pre>
 {% endif %}
+
+{% if error %}
+<h3>Error:</h3>
+<p style="color: red;">{{ error }}</p>
+{% endif %}
+    <!-- JavaScript Code -->
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+    const matrixSizeSelector = document.getElementById('matrix_size');
+    const matrixInputDiv = document.getElementById('matrix_input');
+    const bContainer = document.getElementById('b_container');
+    const x0Container = document.getElementById('x0_container');
+
+    // Function to dynamically update the matrix and vectors
+    function updateInputs(size) {
+        console.log(`Updating inputs for size: ${size}`);
+
+        // Clear previous matrix
+        matrixInputDiv.innerHTML = '';
+        bContainer.querySelector('#b_table')?.remove();
+        x0Container.querySelector('#x0_table')?.remove();
+
+        // Create a new table for the matrix
+        const matrixTable = document.createElement('table');
+        for (let i = 0; i < size; i++) {
+            const row = document.createElement('tr');
+            for (let j = 0; j < size; j++) {
+                const cell = document.createElement('td');
+                const input = document.createElement('input');
+                input.type = 'number';
+                input.step = 'any';
+                input.name = `A_${i}_${j}`;
+                input.placeholder = `A[${i},${j}]`;
+                cell.appendChild(input);
+                row.appendChild(cell);
+            }
+            matrixTable.appendChild(row);
+        }
+        matrixInputDiv.appendChild(matrixTable);
+
+        // Update b vector
+        const bTable = document.createElement('table');
+        bTable.id = 'b_table';
+        for (let i = 0; i < size; i++) {
+            const bRow = document.createElement('tr');
+            const bCell = document.createElement('td');
+            const bInput = document.createElement('input');
+            bInput.type = 'number';
+            bInput.step = 'any';
+            bInput.name = `b_${i}`;
+            bInput.placeholder = `b[${i}]`;
+            bCell.appendChild(bInput);
+            bRow.appendChild(bCell);
+            bTable.appendChild(bRow);
+        }
+        bContainer.appendChild(bTable);
+
+        // Update x0 vector
+        const x0Table = document.createElement('table');
+        x0Table.id = 'x0_table';
+        for (let i = 0; i < size; i++) {
+            const x0Row = document.createElement('tr');
+            const x0Cell = document.createElement('td');
+            const x0Input = document.createElement('input');
+            x0Input.type = 'number';
+            x0Input.step = 'any';
+            x0Input.name = `x0_${i}`;
+            x0Input.placeholder = `x0[${i}]`;
+            x0Cell.appendChild(x0Input);
+            x0Row.appendChild(x0Cell);
+            x0Table.appendChild(x0Row);
+        }
+        x0Container.appendChild(x0Table);
+    }
+
+    // Initial call to set up inputs for default size
+    updateInputs(parseInt(matrixSizeSelector.value));
+
+    // Add event listener for matrix size change
+    matrixSizeSelector.addEventListener('change', function () {
+        console.log("Matrix size changed to:", this.value);
+        const size = parseInt(this.value);
+        updateInputs(size);
+    });
+});
+</script>
 {% endblock %}

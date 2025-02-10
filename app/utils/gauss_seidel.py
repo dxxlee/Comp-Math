@@ -6,9 +6,9 @@ def gauss_seidel(A, b, x0, tol=1e-6, max_iter=100):
     Solves a system of linear equations using the Gauss-Seidel iterative method.
 
     Parameters:
-        A (list of lists or numpy array): Coefficient matrix of the system.
-        b (list or numpy array): Right-hand side vector of the system.
-        x0 (list or numpy array): Initial guess for the solution.
+        A (numpy array): Coefficient matrix of the system.
+        b (numpy array): Right-hand side vector of the system.
+        x0 (numpy array): Initial guess for the solution.
         tol (float): Tolerance for stopping criterion (default: 1e-6).
         max_iter (int): Maximum number of iterations (default: 100).
 
@@ -24,7 +24,7 @@ def gauss_seidel(A, b, x0, tol=1e-6, max_iter=100):
 
         # Perform Gauss-Seidel iteration
         for i in range(n):
-            summation = sum(A[i][j] * x_new[j] for j in range(n) if j != i)
+            summation = sum(A[i][j] * x[j] for j in range(i)) + sum(A[i][j] * x_new[j] for j in range(i + 1, n))
             x_new[i] = (b[i] - summation) / A[i][i]
 
         # Check the stopping condition (infinity norm of the difference)
