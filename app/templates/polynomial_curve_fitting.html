@@ -2,5 +2,106 @@
 
 {% block content %}
 <h2>Polynomial Curve Fitting</h2>
-<p>This page discusses polynomial curve fitting techniques for data approximation.</p>
+<form method="POST">
+    <div>
+        <label for="num_points">Number of Data Points:</label><br>
+        <select id="num_points" name="num_points">
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4" selected>4</option>
+            <option value="5">5</option>
+            <option value="6">6</option>
+        </select>
+    </div>
+
+    <!-- Dynamic Input Fields -->
+    <div id="data_input">
+        <h4>Data Points:</h4>
+        <table>
+            {% for i in range(4) %}
+            <tr>
+                <td>
+                    <input type="number" step="any" name="x_{{i}}" placeholder="x[{{i}}]">
+                </td>
+                <td>
+                    <input type="number" step="any" name="y_{{i}}" placeholder="y[{{i}}]">
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+
+    <!-- Polynomial Degree -->
+    <div>
+        <label for="degree">Polynomial Degree:</label><br>
+        <input type="number" id="degree" name="degree" value="3" min="1" required>
+    </div>
+
+    <button type="submit">Fit Polynomial</button>
+</form>
+
+{% if result %}
+<h3>Results:</h3>
+<p><strong>Fitted Polynomial Equation:</strong> {{ result.equation }}</p>
+<img src="data:image/png;base64,{{ result.plot_image }}" alt="Polynomial Fit Plot">
+<p><strong>Description:</strong> The red curve represents the fitted polynomial equation.
+The blue dots are the original data points provided by the user.</p>
+{% endif %}
+
+{% if error %}
+<h3>Error:</h3>
+<p style="color: red;">{{ error }}</p>
+{% endif %}
+
+    <!-- JavaScript Code -->
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const numPointsSelector = document.getElementById('num_points');
+    const dataInputDiv = document.getElementById('data_input');
+
+    // Function to dynamically update input fields
+    function updateInputs(numPoints) {
+        // Clear previous inputs
+        dataInputDiv.innerHTML = '';
+
+        // Create a new table for the inputs
+        const table = document.createElement('table');
+        for (let i = 0; i < numPoints; i++) {
+            const row = document.createElement('tr');
+
+            // Create x input
+            const xCell = document.createElement('td');
+            const xInput = document.createElement('input');
+            xInput.type = 'number';
+            xInput.step = 'any';
+            xInput.name = `x_${i}`;
+            xInput.placeholder = `x[${i}]`;
+            xCell.appendChild(xInput);
+            row.appendChild(xCell);
+
+            // Create y input
+            const yCell = document.createElement('td');
+            const yInput = document.createElement('input');
+            yInput.type = 'number';
+            yInput.step = 'any';
+            yInput.name = `y_${i}`;
+            yInput.placeholder = `y[${i}]`;
+            yCell.appendChild(yInput);
+            row.appendChild(yCell);
+
+            table.appendChild(row);
+        }
+        dataInputDiv.appendChild(table);
+    }
+
+    // Initial call to set up inputs for default number of points
+    updateInputs(parseInt(numPointsSelector.value));
+
+    // Add event listener for number of points change
+    numPointsSelector.addEventListener('change', function () {
+        const numPoints = parseInt(this.value);
+        updateInputs(numPoints);
+    });
+});
+</script>
 {% endblock %}

@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, request
 from app.utils.gauss_seidel import gauss_seidel
 from app.utils.lu_factorization import lu_factorization, solve_lu
+from app.utils.polynomial_curve_fitting import fit_polynomial
 import numpy as np
 
 main = Blueprint('main', __name__)
@@ -101,9 +102,28 @@ def lu_factorization_route():
 
     return render_template('lu_factorization.html', result=result, error=error, matrix_size=matrix_size)
 
-@main.route('/polynomial-curve-fitting')
-def polynomial_curve_fitting():
-    return render_template('polynomial_curve_fitting.html')
+@main.route('/polynomial-curve-fitting', methods=['GET', 'POST'])
+def polynomial_fit_route():
+    result = None
+    error = None
+
+    if request.method == 'POST':
+        try:
+            # Get the number of points
+            num_points = int(request.form['num_points'])
+
+            # Parse input data
+            x_data = [float(request.form[f'x_{i}']) for i in range(num_points)]
+            y_data = [float(request.form[f'y_{i}']) for i in range(num_points)]
+            degree = int(request.form['degree'])
+
+            # Fit the polynomial
+            result = fit_polynomial(x_data, y_data, degree)
+
+        except Exception as e:
+            error = str(e)
+
+    return render_template('polynomial_curve_fitting.html', result=result, error=error)
 
 @main.route('/lagrange-interpolation')
 def lagrange_interpolation():
