@@ -1,33 +1,56 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LU Factorization</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 20px; padding: 20px; }
-        textarea { width: 100%; height: 60px; margin-bottom: 10px; }
-        pre { background-color: #f4f4f4; padding: 10px; border-radius: 5px; }
-    </style>
-</head>
-<body>
-    <h2>LU Factorization</h2>
-    <form method="post">
-        <label>Enter matrix A (as a list of lists, e.g., [[4,-1,0],[-1,4,-1],[0,-1,4]]):</label>
-        <textarea name="matrix_A" required>[[4,-1,0],[-1,4,-1],[0,-1,4]]</textarea>
-        <br>
-        <label>Enter vector b (as a list, e.g., [15,10,10]):</label>
-        <textarea name="vector_b" required>[15,10,10]</textarea>
-        <br>
-        <button type="submit">Compute LU Factorization</button>
-    </form>
+{% extends "base.html" %}
 
-    {% if result %}
-        <h3>Results:</h3>
-        {% if result.error %}
-            <p style="color: red;">Error: {{ result.error }}</p>
-        {% else %}
-            <pre>
+{% block content %}
+<h2>LU Factorization</h2>
+<form method="POST">
+    <h3>Input Coefficients for the System of Equations:</h3>
+
+    <!-- Matrix Size Selector -->
+    <div>
+        <label for="matrix_size">Matrix Size (n x n):</label><br>
+        <select id="matrix_size" name="matrix_size">
+            <option value="2">2x2</option>
+            <option value="3" selected>3x3</option>
+            <option value="4">4x4</option>
+        </select>
+    </div>
+
+    <!-- Dynamic Matrix Input -->
+    <div id="matrix_input">
+        <h4>Coefficient Matrix (A):</h4>
+        <table>
+            {% for i in range(3) %}
+            <tr>
+                {% for j in range(3) %}
+                <td>
+                    <input type="number" step="any" name="A_{{i}}_{{j}}" placeholder="A[{{i}},{{j}}]">
+                </td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+
+    <!-- Right-hand Side Vector (b) -->
+    <div id="b_container">
+        <h4>Right-hand Side Vector (b):</h4>
+        <table id="b_table">
+            {% for i in range(3) %}
+            <tr>
+                <td>
+                    <input type="number" step="any" name="b_{{i}}" placeholder="b[{{i}}]">
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+
+    <button type="submit">Compute LU Factorization</button>
+</form>
+
+{% if result %}
+<h3>Results:</h3>
+<pre>
 Lower triangular matrix L:
 {{ result.L }}
 
@@ -39,8 +62,67 @@ Solution of Ax = b:
 
 Check: A * x ≈ b
 {{ result.check }}
-            </pre>
-        {% endif %}
-    {% endif %}
-</body>
-</html>
+</pre>
+{% endif %}
+
+{% if error %}
+<h3>Error:</h3>
+<p style="color: red;">{{ error }}</p>
+{% endif %}
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+    const matrixSizeSelector = document.getElementById('matrix_size');
+    const matrixInputDiv = document.getElementById('matrix_input');
+    const bContainer = document.getElementById('b_container');
+
+    function updateInputs(size) {
+        matrixInputDiv.innerHTML = '';
+        bContainer.querySelector('#b_table')?.remove();
+
+        // Create a new table for the matrix
+        const matrixTable = document.createElement('table');
+        for (let i = 0; i < size; i++) {
+            const row = document.createElement('tr');
+            for (let j = 0; j < size; j++) {
+                const cell = document.createElement('td');
+                const input = document.createElement('input');
+                input.type = 'number';
+                input.step = 'any';
+                input.name = `A_${i}_${j}`;
+                input.placeholder = `A[${i},${j}]`;
+                cell.appendChild(input);
+                row.appendChild(cell);
+            }
+            matrixTable.appendChild(row);
+        }
+        matrixInputDiv.appendChild(matrixTable);
+
+        // Update b vector
+        const bTable = document.createElement('table');
+        bTable.id = 'b_table';
+        for (let i = 0; i < size; i++) {
+            const bRow = document.createElement('tr');
+            const bCell = document.createElement('td');
+            const bInput = document.createElement('input');
+            bInput.type = 'number';
+            bInput.step = 'any';
+            bInput.name = `b_${i}`;
+            bInput.placeholder = `b[${i}]`;
+            bCell.appendChild(bInput);
+            bRow.appendChild(bCell);
+            bTable.appendChild(bRow);
+        }
+        bContainer.appendChild(bTable);
+    }
+
+    updateInputs(parseInt(matrixSizeSelector.value));
+
+    matrixSizeSelector.addEventListener('change', function () {
+        updateInputs(parseInt(this.value));
+    });
+});
+</script>
+
+{% endblock %}

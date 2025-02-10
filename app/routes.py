@@ -61,22 +61,32 @@ def gauss_seidel_route():
 
     return render_template('gauss_seidel.html', result=result, error=error, matrix_size=matrix_size)
 
-@main.route('/lu_factorization', methods=['GET', 'POST'])
+@main.route('/lu-factorization', methods=['GET', 'POST'])
 def lu_factorization_route():
     result = None
+    error = None
+    matrix_size = 3  # Размер матрицы по умолчанию
+
     if request.method == 'POST':
         try:
-            # Получаем данные от пользователя
-            A_input = request.form.get('matrix_A')
-            b_input = request.form.get('vector_b')
+            # Получаем размер матрицы от пользователя
+            matrix_size = int(request.form['matrix_size'])
 
-            # Преобразуем строковый ввод в массивы numpy
-            A = np.array(eval(A_input), dtype=float)
-            b = np.array(eval(b_input), dtype=float)
+            # Считываем матрицу A
+            A = []
+            for i in range(matrix_size):
+                row = []
+                for j in range(matrix_size):
+                    value = float(request.form[f'A_{i}_{j}'])
+                    row.append(value)
+                A.append(row)
 
-            # Вычисляем LU-разложение и решение системы
-            L, U = lu_factorization(A)
-            x = solve_lu(L, U, b)
+            # Считываем вектор b
+            b = [float(request.form[f'b_{i}']) for i in range(matrix_size)]
+
+            # Применяем LU-разложение
+            L, U = lu_factorization(np.array(A))
+            x = solve_lu(L, U, np.array(b))
             check = np.dot(A, x)
 
             result = {
@@ -85,10 +95,11 @@ def lu_factorization_route():
                 'solution': x.tolist(),
                 'check': check.tolist()
             }
-        except Exception as e:
-            result = {'error': str(e)}
 
-    return render_template('lu_factorization.html', result=result)
+        except Exception as e:
+            error = str(e)
+
+    return render_template('lu_factorization.html', result=result, error=error, matrix_size=matrix_size)
 
 @main.route('/polynomial-curve-fitting')
 def polynomial_curve_fitting():
