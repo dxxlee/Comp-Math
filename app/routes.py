@@ -1,8 +1,11 @@
-from flask import Blueprint, render_template, request
+from flask import Blueprint, render_template, request, jsonify
+from sympy import euler
+
 from app.utils.gauss_seidel import gauss_seidel
 from app.utils.lu_factorization import lu_factorization, solve_lu
 from app.utils.polynomial_curve_fitting import fit_polynomial
 from app.utils.lagrange_interpolation import lagrange_interpolation
+from app.utils.euler import euler_method
 import numpy as np
 
 main = Blueprint('main', __name__)
@@ -153,10 +156,30 @@ def lagrange_interpolation_route():
 
     return render_template('lagrange_interpolation.html', result=result, error=error)
 
-@main.route('/euler-method')
-def euler_method():
-    return render_template('euler_method.html')
-
 @main.route('/booles-rule')
 def booles_rule():
     return render_template('booles_rule.html')
+
+@main.route('/euler-method', methods=['GET', 'POST'])
+def euler_view():  # Renamed from euler to euler_view to avoid conflicts
+    if request.method == 'POST':
+        try:
+            data = request.get_json()
+            x0 = float(data['x0'])
+            y0 = float(data['y0'])
+            h = float(data['h'])
+            n = int(data['n'])
+            equation = data['equation']
+
+            f = lambda x, y: eval(equation)
+            x_values, y_values = euler_method(f, x0, y0, h, n)
+
+            return jsonify({
+                'x_values': x_values,
+                'y_values': y_values
+            })
+
+        except Exception as e:
+            return jsonify({'error': str(e)}), 400
+
+    return render_template('euler_method.html')
