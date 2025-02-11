@@ -3,27 +3,77 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Flask App</title>
+    <title>Mathematical Methods</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        /* Custom Styles for Sidebar */
+        .sidebar {
+            height: 100vh; /* Full height */
+            position: fixed; /* Fixed position */
+            top: 0;
+            left: 0;
+            width: 250px; /* Width of the sidebar */
+            background-color: #f8f9fa; /* Light background */
+            padding-top: 20px; /* Add some spacing at the top */
+            border-right: 1px solid #dee2e6; /* Border for separation */
+        }
+        .sidebar .nav-link {
+            color: #333; /* Dark text for links */
+            font-size: 1rem; /* Slightly larger font */
+            padding: 10px 15px; /* Adjust padding */
+        }
+        .sidebar .nav-link:hover {
+            background-color: #e9ecef; /* Highlight on hover */
+            color: #007bff; /* Blue color on hover */
+        }
+        .main-content {
+            margin-left: 250px; /* Offset for the sidebar */
+            padding: 20px; /* Add padding */
+        }
+    </style>
 </head>
 <body>
-    <header>
-        <h1>Mathematical Methods</h1>
-        <nav>
-            <ul>
-                <li><a href="/">Home</a></li>
-                <li><a href="/graphical-method">Graphical Method</a></li>
-                <li><a href="/root-finding">Root-Finding Methods</a></li>
-                <li><a href="/gauss-seidel">Gauss-Seidel Method</a></li>
-                <li><a href="/lu-factorization">LU Factorization</a></li>
-                <li><a href="/polynomial-curve-fitting">Polynomial Curve Fitting</a></li>
-                <li><a href="/lagrange-interpolation">Lagrange’s Interpolation</a></li>
-                <li><a href="/euler-method">Euler’s Method</a></li>
-                <li><a href="/booles-rule">Boole’s Rule</a></li>
-            </ul>
-        </nav>
-    </header>
-    <main>
+    <!-- Left-Aligned Sidebar -->
+    <nav class="sidebar">
+        <h4 class="text-center mb-4">Mathematical Methods</h4>
+        <ul class="nav flex-column">
+            <li class="nav-item">
+                <a class="nav-link" href="/">Home</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/graphical-method">Graphical Method</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/root-finding">Root-Finding Methods</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/gauss-seidel">Gauss-Seidel Method</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/lu-factorization">LU Factorization</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/polynomial-curve-fitting">Polynomial Curve Fitting</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/lagrange-interpolation">Lagrange’s Interpolation</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/euler-method">Euler’s Method</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/booles-rule">Boole’s Rule</a>
+            </li>
+        </ul>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="main-content">
         {% block content %}{% endblock %}
-    </main>
+    </div>
+
+    <!-- Bootstrap JS and Popper.js -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

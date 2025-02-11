@@ -1,56 +1,65 @@
 {% extends "base.html" %}
-
 {% block content %}
-<h2>Lagrange's Interpolation</h2>
-<form method="POST">
-    <div>
-        <label for="num_points">Number of Data Points:</label><br>
-        <select id="num_points" name="num_points">
-            <option value="2">2</option>
-            <option value="3">3</option>
-            <option value="4" selected>4</option>
-            <option value="5">5</option>
-            <option value="6">6</option>
-        </select>
+<div class="container mt-4">
+    <h2 class="text-center mb-4">Lagrange's Interpolation</h2>
+    <form method="POST" class="border p-4 rounded bg-light">
+        <!-- Number of Data Points -->
+        <div class="mb-3">
+            <label for="num_points" class="form-label">Number of Data Points:</label>
+            <select id="num_points" name="num_points" class="form-select">
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4" selected>4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+            </select>
+        </div>
+
+        <!-- Dynamic Input Fields -->
+        <div id="data_input">
+            <h4>Data Points:</h4>
+            <table class="table table-bordered">
+                {% for i in range(4) %}
+                <tr>
+                    <td>
+                        <input type="number" step="any" name="x_{{i}}" placeholder="x[{{i}}]" class="form-control">
+                    </td>
+                    <td>
+                        <input type="number" step="any" name="y_{{i}}" placeholder="y[{{i}}]" class="form-control">
+                    </td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+
+        <!-- X Value to Estimate -->
+        <div class="mb-3">
+            <label for="x_value" class="form-label">X Value to Estimate:</label>
+            <input type="number" step="any" id="x_value" name="x_value" placeholder="e.g., 7" class="form-control" required>
+        </div>
+
+        <!-- Submit Button -->
+        <button type="submit" class="btn btn-primary w-100">Estimate Value</button>
+    </form>
+
+    <!-- Results Section -->
+    {% if result %}
+    <div class="mt-4">
+        <h3>Results:</h3>
+        <p><strong>Interpolated Value at x = {{ result.x_value }}:</strong> {{ result.interpolated_value }}</p>
     </div>
+    {% endif %}
 
-    <!-- Dynamic Input Fields -->
-    <div id="data_input">
-        <h4>Data Points:</h4>
-        <table>
-            {% for i in range(4) %}
-            <tr>
-                <td>
-                    <input type="number" step="any" name="x_{{i}}" placeholder="x[{{i}}]">
-                </td>
-                <td>
-                    <input type="number" step="any" name="y_{{i}}" placeholder="y[{{i}}]">
-                </td>
-            </tr>
-            {% endfor %}
-        </table>
+    <!-- Error Section -->
+    {% if error %}
+    <div class="mt-4">
+        <h3>Error:</h3>
+        <p class="alert alert-danger">{{ error }}</p>
     </div>
+    {% endif %}
+</div>
 
-    <!-- X Value to Estimate -->
-    <div>
-        <label for="x_value">X Value to Estimate:</label><br>
-        <input type="number" step="any" id="x_value" name="x_value" placeholder="e.g., 7" required>
-    </div>
-
-    <button type="submit">Estimate Value</button>
-</form>
-
-{% if result %}
-<h3>Results:</h3>
-<p><strong>Interpolated Value at x = {{ result.x_value }}:</strong> {{ result.interpolated_value }}</p>
-{% endif %}
-
-{% if error %}
-<h3>Error:</h3>
-<p style="color: red;">{{ error }}</p>
-{% endif %}
-
-    <!-- JavaScript Code -->
+<!-- JavaScript Code -->
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     const numPointsSelector = document.getElementById('num_points');
@@ -63,6 +72,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Create a new table for the inputs
         const table = document.createElement('table');
+        table.classList.add('table', 'table-bordered');
         for (let i = 0; i < numPoints; i++) {
             const row = document.createElement('tr');
 
@@ -73,6 +83,7 @@ document.addEventListener('DOMContentLoaded', function () {
             xInput.step = 'any';
             xInput.name = `x_${i}`;
             xInput.placeholder = `x[${i}]`;
+            xInput.classList.add('form-control');
             xCell.appendChild(xInput);
             row.appendChild(xCell);
 
@@ -83,6 +94,7 @@ document.addEventListener('DOMContentLoaded', function () {
             yInput.step = 'any';
             yInput.name = `y_${i}`;
             yInput.placeholder = `y[${i}]`;
+            yInput.classList.add('form-control');
             yCell.appendChild(yInput);
             row.appendChild(yCell);
 

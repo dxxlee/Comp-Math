@@ -1,59 +1,68 @@
 {% extends "base.html" %}
-
 {% block content %}
-<h2>Polynomial Curve Fitting</h2>
-<form method="POST">
-    <div>
-        <label for="num_points">Number of Data Points:</label><br>
-        <select id="num_points" name="num_points">
-            <option value="2">2</option>
-            <option value="3">3</option>
-            <option value="4" selected>4</option>
-            <option value="5">5</option>
-            <option value="6">6</option>
-        </select>
+<div class="container mt-4">
+    <h2 class="text-center mb-4">Polynomial Curve Fitting</h2>
+    <form method="POST" class="border p-4 rounded bg-light">
+        <!-- Number of Data Points -->
+        <div class="mb-3">
+            <label for="num_points" class="form-label">Number of Data Points:</label>
+            <select id="num_points" name="num_points" class="form-select">
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4" selected>4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+            </select>
+        </div>
+
+        <!-- Dynamic Input Fields -->
+        <div id="data_input">
+            <h4>Data Points:</h4>
+            <table class="table table-bordered">
+                {% for i in range(4) %}
+                <tr>
+                    <td>
+                        <input type="number" step="any" name="x_{{i}}" placeholder="x[{{i}}]" class="form-control">
+                    </td>
+                    <td>
+                        <input type="number" step="any" name="y_{{i}}" placeholder="y[{{i}}]" class="form-control">
+                    </td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+
+        <!-- Polynomial Degree -->
+        <div class="mb-3">
+            <label for="degree" class="form-label">Polynomial Degree:</label>
+            <input type="number" id="degree" name="degree" value="3" min="1" class="form-control" required>
+        </div>
+
+        <!-- Submit Button -->
+        <button type="submit" class="btn btn-primary w-100">Fit Polynomial</button>
+    </form>
+
+    <!-- Results Section -->
+    {% if result %}
+    <div class="mt-4">
+        <h3>Results:</h3>
+        <p><strong>Fitted Polynomial Equation:</strong> {{ result.equation }}</p>
+        <img src="data:image/png;base64,{{ result.plot_image }}" alt="Polynomial Fit Plot" class="img-fluid">
+        <p><strong>Description:</strong> The red curve represents the fitted polynomial equation.
+            The blue dots are the original data points provided by the user.</p>
     </div>
+    {% endif %}
 
-    <!-- Dynamic Input Fields -->
-    <div id="data_input">
-        <h4>Data Points:</h4>
-        <table>
-            {% for i in range(4) %}
-            <tr>
-                <td>
-                    <input type="number" step="any" name="x_{{i}}" placeholder="x[{{i}}]">
-                </td>
-                <td>
-                    <input type="number" step="any" name="y_{{i}}" placeholder="y[{{i}}]">
-                </td>
-            </tr>
-            {% endfor %}
-        </table>
+    <!-- Error Section -->
+    {% if error %}
+    <div class="mt-4">
+        <h3>Error:</h3>
+        <p class="alert alert-danger">{{ error }}</p>
     </div>
+    {% endif %}
+</div>
 
-    <!-- Polynomial Degree -->
-    <div>
-        <label for="degree">Polynomial Degree:</label><br>
-        <input type="number" id="degree" name="degree" value="3" min="1" required>
-    </div>
-
-    <button type="submit">Fit Polynomial</button>
-</form>
-
-{% if result %}
-<h3>Results:</h3>
-<p><strong>Fitted Polynomial Equation:</strong> {{ result.equation }}</p>
-<img src="data:image/png;base64,{{ result.plot_image }}" alt="Polynomial Fit Plot">
-<p><strong>Description:</strong> The red curve represents the fitted polynomial equation.
-The blue dots are the original data points provided by the user.</p>
-{% endif %}
-
-{% if error %}
-<h3>Error:</h3>
-<p style="color: red;">{{ error }}</p>
-{% endif %}
-
-    <!-- JavaScript Code -->
+<!-- JavaScript Code -->
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     const numPointsSelector = document.getElementById('num_points');
@@ -66,6 +75,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Create a new table for the inputs
         const table = document.createElement('table');
+        table.classList.add('table', 'table-bordered');
         for (let i = 0; i < numPoints; i++) {
             const row = document.createElement('tr');
 
@@ -76,6 +86,7 @@ document.addEventListener('DOMContentLoaded', function () {
             xInput.step = 'any';
             xInput.name = `x_${i}`;
             xInput.placeholder = `x[${i}]`;
+            xInput.classList.add('form-control');
             xCell.appendChild(xInput);
             row.appendChild(xCell);
 
@@ -86,6 +97,7 @@ document.addEventListener('DOMContentLoaded', function () {
             yInput.step = 'any';
             yInput.name = `y_${i}`;
             yInput.placeholder = `y[${i}]`;
+            yInput.classList.add('form-control');
             yCell.appendChild(yInput);
             row.appendChild(yCell);
 

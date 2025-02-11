@@ -1,90 +1,100 @@
 {% extends "base.html" %}
-
 {% block content %}
-<h2>Gauss-Seidel Method</h2>
-<form method="POST">
-    <h3>Input Coefficients for the System of Equations:</h3>
+<div class="container mt-4">
+    <h2 class="text-center mb-4">Gauss-Seidel Method</h2>
+    <form method="POST" class="border p-4 rounded bg-light">
+        <h3 class="mb-3">Input Coefficients for the System of Equations:</h3>
 
-    <!-- Matrix Size Selector -->
-    <div>
-        <label for="matrix_size">Matrix Size (n x n):</label><br>
-        <select id="matrix_size" name="matrix_size">
-            <option value="2">2x2</option>
-            <option value="3" selected>3x3</option>
-            <option value="4">4x4</option>
-        </select>
-    </div>
+        <!-- Matrix Size Selector -->
+        <div class="mb-3">
+            <label for="matrix_size" class="form-label">Matrix Size (n x n):</label>
+            <select id="matrix_size" name="matrix_size" class="form-select">
+                <option value="2">2x2</option>
+                <option value="3" selected>3x3</option>
+                <option value="4">4x4</option>
+            </select>
+        </div>
 
-    <!-- Dynamic Matrix Input -->
-    <div id="matrix_input">
-        <h4>Coefficient Matrix (A):</h4>
-        <table>
-            {% for i in range(3) %}
-            <tr>
-                {% for j in range(3) %}
-                <td>
-                    <input type="number" step="any" name="A_{{i}}_{{j}}" placeholder="A[{{i}},{{j}}]">
-                </td>
+        <!-- Dynamic Matrix Input -->
+        <div id="matrix_input">
+            <h4>Coefficient Matrix (A):</h4>
+            <table class="table table-bordered">
+                {% for i in range(3) %}
+                <tr>
+                    {% for j in range(3) %}
+                    <td>
+                        <input type="number" step="any" name="A_{{i}}_{{j}}" placeholder="A[{{i}},{{j}}]" class="form-control">
+                    </td>
+                    {% endfor %}
+                </tr>
                 {% endfor %}
-            </tr>
-            {% endfor %}
-        </table>
+            </table>
+        </div>
+
+        <!-- Right-hand Side Vector (b) -->
+        <div id="b_container" class="mb-3">
+            <h4>Right-hand Side Vector (b):</h4>
+            <table id="b_table" class="table table-bordered">
+                {% for i in range(3) %}
+                <tr>
+                    <td>
+                        <input type="number" step="any" name="b_{{i}}" placeholder="b[{{i}}]" class="form-control">
+                    </td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+
+        <!-- Initial Guess (x0) -->
+        <div id="x0_container" class="mb-3">
+            <h4>Initial Guess (x0):</h4>
+            <table id="x0_table" class="table table-bordered">
+                {% for i in range(3) %}
+                <tr>
+                    <td>
+                        <input type="number" step="any" name="x0_{{i}}" placeholder="x0[{{i}}]" class="form-control">
+                    </td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+
+        <!-- Additional Parameters -->
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <label for="tol" class="form-label">Tolerance (tol):</label>
+                <input type="number" id="tol" name="tol" step="any" value="1e-6" class="form-control">
+            </div>
+            <div class="col-md-6">
+                <label for="max_iter" class="form-label">Maximum Iterations:</label>
+                <input type="number" id="max_iter" name="max_iter" value="100" class="form-control">
+            </div>
+        </div>
+
+        <!-- Submit Button -->
+        <button type="submit" class="btn btn-primary w-100">Execute Calculation</button>
+    </form>
+
+    <!-- Results Section -->
+    {% if result %}
+    <div class="mt-4">
+        <h3>Results:</h3>
+        <pre class="bg-light p-3 border rounded">{{ result }}</pre>
     </div>
+    {% endif %}
 
-    <!-- Right-hand Side Vector (b) -->
-    <div id="b_container">
-        <h4>Right-hand Side Vector (b):</h4>
-        <table id="b_table">
-            {% for i in range(3) %}
-            <tr>
-                <td>
-                    <input type="number" step="any" name="b_{{i}}" placeholder="b[{{i}}]">
-                </td>
-            </tr>
-            {% endfor %}
-        </table>
+    <!-- Error Section -->
+    {% if error %}
+    <div class="mt-4">
+        <h3>Error:</h3>
+        <p class="alert alert-danger">{{ error }}</p>
     </div>
+    {% endif %}
+</div>
 
-    <!-- Initial Guess (x0) -->
-    <div id="x0_container">
-        <h4>Initial Guess (x0):</h4>
-        <table id="x0_table">
-            {% for i in range(3) %}
-            <tr>
-                <td>
-                    <input type="number" step="any" name="x0_{{i}}" placeholder="x0[{{i}}]">
-                </td>
-            </tr>
-            {% endfor %}
-        </table>
-    </div>
-
-    <!-- Additional Parameters -->
-    <div>
-        <label for="tol">Tolerance (tol):</label><br>
-        <input type="number" id="tol" name="tol" step="any" value="1e-6">
-    </div>
-    <div>
-        <label for="max_iter">Maximum Iterations:</label><br>
-        <input type="number" id="max_iter" name="max_iter" value="100">
-    </div>
-
-    <button type="submit">Execute Calculation</button>
-</form>
-
-{% if result %}
-<h3>Results:</h3>
-<pre>{{ result }}</pre>
-{% endif %}
-
-{% if error %}
-<h3>Error:</h3>
-<p style="color: red;">{{ error }}</p>
-{% endif %}
-    <!-- JavaScript Code -->
+<!-- JavaScript Code -->
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-
     const matrixSizeSelector = document.getElementById('matrix_size');
     const matrixInputDiv = document.getElementById('matrix_input');
     const bContainer = document.getElementById('b_container');
@@ -101,6 +111,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Create a new table for the matrix
         const matrixTable = document.createElement('table');
+        matrixTable.classList.add('table', 'table-bordered');
         for (let i = 0; i < size; i++) {
             const row = document.createElement('tr');
             for (let j = 0; j < size; j++) {
@@ -110,6 +121,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 input.step = 'any';
                 input.name = `A_${i}_${j}`;
                 input.placeholder = `A[${i},${j}]`;
+                input.classList.add('form-control');
                 cell.appendChild(input);
                 row.appendChild(cell);
             }
@@ -120,6 +132,7 @@ document.addEventListener('DOMContentLoaded', function () {
         // Update b vector
         const bTable = document.createElement('table');
         bTable.id = 'b_table';
+        bTable.classList.add('table', 'table-bordered');
         for (let i = 0; i < size; i++) {
             const bRow = document.createElement('tr');
             const bCell = document.createElement('td');
@@ -128,6 +141,7 @@ document.addEventListener('DOMContentLoaded', function () {
             bInput.step = 'any';
             bInput.name = `b_${i}`;
             bInput.placeholder = `b[${i}]`;
+            bInput.classList.add('form-control');
             bCell.appendChild(bInput);
             bRow.appendChild(bCell);
             bTable.appendChild(bRow);
@@ -137,6 +151,7 @@ document.addEventListener('DOMContentLoaded', function () {
         // Update x0 vector
         const x0Table = document.createElement('table');
         x0Table.id = 'x0_table';
+        x0Table.classList.add('table', 'table-bordered');
         for (let i = 0; i < size; i++) {
             const x0Row = document.createElement('tr');
             const x0Cell = document.createElement('td');
@@ -145,6 +160,7 @@ document.addEventListener('DOMContentLoaded', function () {
             x0Input.step = 'any';
             x0Input.name = `x0_${i}`;
             x0Input.placeholder = `x0[${i}]`;
+            x0Input.classList.add('form-control');
             x0Cell.appendChild(x0Input);
             x0Row.appendChild(x0Cell);
             x0Table.appendChild(x0Row);
