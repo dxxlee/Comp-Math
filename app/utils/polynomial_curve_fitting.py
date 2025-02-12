@@ -1,7 +1,4 @@
 import numpy as np
-import matplotlib.pyplot as plt
-from io import BytesIO
-import base64
 
 
 def format_polynomial(coefficients):

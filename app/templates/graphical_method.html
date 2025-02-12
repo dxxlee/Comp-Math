@@ -1,6 +1,100 @@
 {% extends "base.html" %}
-
 {% block content %}
-<h2>Graphical Method and Absolute Error</h2>
-<p>This page is dedicated to the Graphical Method and Absolute Error.</p>
+<div class="container mt-4">
+    <h2 class="mb-4">Graphical Method and Absolute Error</h2>
+
+    <!-- Input Form -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">Input Parameters</h5>
+            <form method="POST" class="row g-3">
+                <div class="col-md-6">
+                    <label for="func_str" class="form-label">Enter f(x):</label>
+                    <input type="text" class="form-control" id="func_str" name="func_str"
+                           placeholder="e.g., x**4 - x**3 + x**2 - x + 1" required>
+                </div>
+                <div class="col-md-3">
+                    <label for="x_min" class="form-label">Enter x_min:</label>
+                    <input type="number" step="any" class="form-control" id="x_min" name="x_min" required>
+                </div>
+                <div class="col-md-3">
+                    <label for="x_max" class="form-label">Enter x_max:</label>
+                    <input type="number" step="any" class="form-control" id="x_max" name="x_max" required>
+                </div>
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary">Calculate</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Results Section -->
+    {% if approx_root is defined %}
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">Results</h5>
+            <p><strong>Approximate Root:</strong> {{ "%.2f"|format(approx_root) }}</p>
+            <p><strong>Absolute Error:</strong> {{ absolute_error }}</p>
+        </div>
+    </div>
+
+    <!-- Plot the graph using Chart.js -->
+    <div class="card">
+        <div class="card-body">
+            <canvas id="myChart" width="800" height="400"></canvas>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        var x_values = {{ x_values | tojson }};
+        var y_values = {{ y_values | tojson }};
+        // Round x-values to 2 decimal places
+        var roundedXValues = x_values.map(x => parseFloat(x.toFixed(2)));
+        const ctx = document.getElementById('myChart').getContext('2d');
+        const myChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: roundedXValues,
+                datasets: [{
+                    label: 'f(x)',
+                    data: y_values,
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 2,
+                    fill: false
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Graph of f(x)'
+                    }
+                },
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'x'
+                        }
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'f(x)'
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+    {% endif %}
+
+    <!-- Error Message -->
+    {% if error %}
+    <div class="alert alert-danger mt-4" role="alert">
+        Error: {{ error }}
+    </div>
+    {% endif %}
+</div>
 {% endblock %}

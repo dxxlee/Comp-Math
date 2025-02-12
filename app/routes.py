@@ -5,6 +5,7 @@ from app.utils.lu_factorization import lu_factorization, solve_lu
 from app.utils.polynomial_curve_fitting import fit_polynomial
 from app.utils.lagrange_interpolation import lagrange_interpolation
 from app.utils.euler import euler_method
+from app.utils.graphical import process_user_input
 import numpy as np
 
 main = Blueprint('main', __name__)
@@ -13,8 +14,30 @@ main = Blueprint('main', __name__)
 def index():
     return render_template('home.html')
 
-@main.route('/graphical-method')
+@main.route('/graphical-method', methods=['GET', 'POST'])
 def graphical_method():
+    if request.method == 'POST':
+        # Get user input from the form
+        func_str = request.form.get('func_str')
+        x_min = request.form.get('x_min')
+        x_max = request.form.get('x_max')
+
+        # Process the input
+        try:
+            results = process_user_input(func_str, x_min, x_max)
+        except Exception as e:
+            return render_template('graphical_method.html', error=str(e))
+
+        # Render the template with results
+        return render_template(
+            'graphical_method.html',
+            x_values=results["x_values"],
+            y_values=results["y_values"],
+            approx_root=results["approx_root"],
+            absolute_error=results["absolute_error"]
+        )
+
+    # For GET requests, just render the form
     return render_template('graphical_method.html')
 
 @main.route('/root-finding')
