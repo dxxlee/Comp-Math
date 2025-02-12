@@ -1,5 +1,4 @@
 from flask import Blueprint, render_template, request, jsonify
-from sympy import euler
 
 from app.utils.gauss_seidel import gauss_seidel
 from app.utils.lu_factorization import lu_factorization, solve_lu
@@ -108,26 +107,25 @@ def lu_factorization_route():
 
 @main.route('/polynomial-curve-fitting', methods=['GET', 'POST'])
 def polynomial_fit_route():
-    result = None
-    error = None
-
     if request.method == 'POST':
         try:
-            # Get the number of points
-            num_points = int(request.form['num_points'])
+            # Get JSON data
+            data = request.get_json()
+            print("Received JSON data:", data)  # Debugging
 
             # Parse input data
-            x_data = [float(request.form[f'x_{i}']) for i in range(num_points)]
-            y_data = [float(request.form[f'y_{i}']) for i in range(num_points)]
-            degree = int(request.form['degree'])
+            num_points = int(data['num_points'])
+            x_data = [float(data[f'x_{i}']) for i in range(num_points)]
+            y_data = [float(data[f'y_{i}']) for i in range(num_points)]
+            degree = int(data['degree'])
 
             # Fit the polynomial
             result = fit_polynomial(x_data, y_data, degree)
-
+            return jsonify(result)
         except Exception as e:
-            error = str(e)
-
-    return render_template('polynomial_curve_fitting.html', result=result, error=error)
+            print(f"Error: {str(e)}")
+            return jsonify({'error': str(e)}), 400
+    return render_template('polynomial_curve_fitting.html')
 
 @main.route('/lagrange-interpolation', methods=['GET', 'POST'])
 def lagrange_interpolation_route():

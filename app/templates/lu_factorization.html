@@ -1,88 +1,128 @@
 {% extends "base.html" %}
-
 {% block content %}
-<h2>LU Factorization</h2>
-<form method="POST">
-    <h3>Input Coefficients for the System of Equations:</h3>
-
-    <!-- Matrix Size Selector -->
-    <div>
-        <label for="matrix_size">Matrix Size (n x n):</label><br>
-        <select id="matrix_size" name="matrix_size">
-            <option value="2">2x2</option>
-            <option value="3" selected>3x3</option>
-            <option value="4">4x4</option>
-        </select>
-    </div>
-
-    <!-- Dynamic Matrix Input -->
-    <div id="matrix_input">
-        <h4>Coefficient Matrix (A):</h4>
-        <table>
-            {% for i in range(3) %}
-            <tr>
-                {% for j in range(3) %}
-                <td>
-                    <input type="number" step="any" name="A_{{i}}_{{j}}" placeholder="A[{{i}},{{j}}]">
-                </td>
+<div class="container mt-4">
+    <h2 class="text-center mb-4">LU Factorization</h2>
+    <form method="POST" class="border p-4 rounded bg-light">
+        <!-- Matrix Size Selector -->
+        <div class="mb-3">
+            <label for="matrix_size" class="form-label">Matrix Size (n x n):</label>
+            <select id="matrix_size" name="matrix_size" class="form-select">
+                <option value="2">2x2</option>
+                <option value="3" selected>3x3</option>
+                <option value="4">4x4</option>
+            </select>
+        </div>
+        <!-- Dynamic Matrix Input -->
+        <div id="matrix_input">
+            <h4>Coefficient Matrix (A):</h4>
+            <table class="table table-bordered">
+                {% for i in range(3) %}
+                <tr>
+                    {% for j in range(3) %}
+                    <td>
+                        <input type="number" step="any" name="A_{{i}}_{{j}}" placeholder="A[{{i}},{{j}}]" class="form-control">
+                    </td>
+                    {% endfor %}
+                </tr>
                 {% endfor %}
-            </tr>
-            {% endfor %}
-        </table>
+            </table>
+        </div>
+        <!-- Right-hand Side Vector (b) -->
+        <div id="b_container">
+            <h4>Right-hand Side Vector (b):</h4>
+            <table class="table table-bordered" id="b_table">
+                {% for i in range(3) %}
+                <tr>
+                    <td>
+                        <input type="number" step="any" name="b_{{i}}" placeholder="b[{{i}}]" class="form-control">
+                    </td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+        <!-- Submit Button -->
+        <button type="submit" class="btn btn-primary w-100">Compute LU Factorization</button>
+    </form>
+    <!-- Results Section -->
+    {% if result %}
+    <div class="mt-4">
+        <h3>Results:</h3>
+        <div class="row">
+            <!-- Lower Triangular Matrix L -->
+            <div class="col-md-6">
+                <h5>Lower triangular matrix L:</h5>
+                <table class="table table-bordered">
+                    {% for row in result.L %}
+                    <tr>
+                        {% for value in row %}
+                        <td>{{ "%.2f"|format(value) }}</td>
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                </table>
+            </div>
+            <!-- Upper Triangular Matrix U -->
+            <div class="col-md-6">
+                <h5>Upper triangular matrix U:</h5>
+                <table class="table table-bordered">
+                    {% for row in result.U %}
+                    <tr>
+                        {% for value in row %}
+                        <td>{{ "%.2f"|format(value) }}</td>
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                </table>
+            </div>
+        </div>
+        <div class="row">
+            <!-- Solution of Ax = b -->
+            <div class="col-md-6">
+                <h5>Solution of Ax = b:</h5>
+                <table class="table table-bordered">
+                    <tr>
+                        {% for value in result.solution %}
+                        <td>x[{{ loop.index0 }}] = {{ "%.2f"|format(value) }}</td>
+                        {% endfor %}
+                    </tr>
+                </table>
+            </div>
+            <!-- Check: A * x ≈ b -->
+            <div class="col-md-6">
+                <h5>Check: A * x ≈ b</h5>
+                <table class="table table-bordered">
+                    <tr>
+                        {% for value in result.check %}
+                        <td>{{ "%.2f"|format(value) }}</td>
+                        {% endfor %}
+                    </tr>
+                </table>
+            </div>
+        </div>
     </div>
-
-    <!-- Right-hand Side Vector (b) -->
-    <div id="b_container">
-        <h4>Right-hand Side Vector (b):</h4>
-        <table id="b_table">
-            {% for i in range(3) %}
-            <tr>
-                <td>
-                    <input type="number" step="any" name="b_{{i}}" placeholder="b[{{i}}]">
-                </td>
-            </tr>
-            {% endfor %}
-        </table>
+    {% endif %}
+    <!-- Error Section -->
+    {% if error %}
+    <div class="mt-4">
+        <h3>Error:</h3>
+        <p class="alert alert-danger">{{ error }}</p>
     </div>
-
-    <button type="submit">Compute LU Factorization</button>
-</form>
-
-{% if result %}
-<h3>Results:</h3>
-<pre>
-Lower triangular matrix L:
-{{ result.L }}
-
-Upper triangular matrix U:
-{{ result.U }}
-
-Solution of Ax = b:
-{{ result.solution }}
-
-Check: A * x ≈ b
-{{ result.check }}
-</pre>
-{% endif %}
-
-{% if error %}
-<h3>Error:</h3>
-<p style="color: red;">{{ error }}</p>
-{% endif %}
-
+    {% endif %}
+</div>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-
     const matrixSizeSelector = document.getElementById('matrix_size');
     const matrixInputDiv = document.getElementById('matrix_input');
     const bContainer = document.getElementById('b_container');
 
+    // Function to dynamically update input fields
     function updateInputs(size) {
         matrixInputDiv.innerHTML = '';
         bContainer.querySelector('#b_table')?.remove();
 
         // Create a new table for the matrix
         const matrixTable = document.createElement('table');
+        matrixTable.classList.add('table', 'table-bordered');
         for (let i = 0; i < size; i++) {
             const row = document.createElement('tr');
             for (let j = 0; j < size; j++) {
@@ -92,6 +132,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 input.step = 'any';
                 input.name = `A_${i}_${j}`;
                 input.placeholder = `A[${i},${j}]`;
+                input.classList.add('form-control');
                 cell.appendChild(input);
                 row.appendChild(cell);
             }
@@ -102,6 +143,7 @@ document.addEventListener('DOMContentLoaded', function () {
         // Update b vector
         const bTable = document.createElement('table');
         bTable.id = 'b_table';
+        bTable.classList.add('table', 'table-bordered');
         for (let i = 0; i < size; i++) {
             const bRow = document.createElement('tr');
             const bCell = document.createElement('td');
@@ -110,6 +152,7 @@ document.addEventListener('DOMContentLoaded', function () {
             bInput.step = 'any';
             bInput.name = `b_${i}`;
             bInput.placeholder = `b[${i}]`;
+            bInput.classList.add('form-control');
             bCell.appendChild(bInput);
             bRow.appendChild(bCell);
             bTable.appendChild(bRow);
@@ -117,12 +160,14 @@ document.addEventListener('DOMContentLoaded', function () {
         bContainer.appendChild(bTable);
     }
 
+    // Initial call to set up inputs for default matrix size
     updateInputs(parseInt(matrixSizeSelector.value));
 
+    // Add event listener for matrix size change
     matrixSizeSelector.addEventListener('change', function () {
-        updateInputs(parseInt(this.value));
+        const size = parseInt(this.value);
+        updateInputs(size);
     });
 });
 </script>
-
 {% endblock %}

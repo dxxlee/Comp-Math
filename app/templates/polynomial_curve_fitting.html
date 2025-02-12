@@ -2,7 +2,7 @@
 {% block content %}
 <div class="container mt-4">
     <h2 class="text-center mb-4">Polynomial Curve Fitting</h2>
-    <form method="POST" class="border p-4 rounded bg-light">
+    <form id="polynomialForm" class="border p-4 rounded bg-light">
         <!-- Number of Data Points -->
         <div class="mb-3">
             <label for="num_points" class="form-label">Number of Data Points:</label>
@@ -14,7 +14,6 @@
                 <option value="6">6</option>
             </select>
         </div>
-
         <!-- Dynamic Input Fields -->
         <div id="data_input">
             <h4>Data Points:</h4>
@@ -31,38 +30,27 @@
                 {% endfor %}
             </table>
         </div>
-
         <!-- Polynomial Degree -->
         <div class="mb-3">
             <label for="degree" class="form-label">Polynomial Degree:</label>
             <input type="number" id="degree" name="degree" value="3" min="1" class="form-control" required>
         </div>
-
         <!-- Submit Button -->
         <button type="submit" class="btn btn-primary w-100">Fit Polynomial</button>
     </form>
-
     <!-- Results Section -->
-    {% if result %}
-    <div class="mt-4">
+    <div class="mt-4" id="resultsSection" style="display: none;">
         <h3>Results:</h3>
-        <p><strong>Fitted Polynomial Equation:</strong> {{ result.equation }}</p>
-        <img src="data:image/png;base64,{{ result.plot_image }}" alt="Polynomial Fit Plot" class="img-fluid">
+        <p><strong>Fitted Polynomial Equation:</strong> <span id="equationResult"></span></p>
+        <canvas id="solutionChart"></canvas>
         <p><strong>Description:</strong> The red curve represents the fitted polynomial equation.
             The blue dots are the original data points provided by the user.</p>
     </div>
-    {% endif %}
-
     <!-- Error Section -->
-    {% if error %}
-    <div class="mt-4">
-        <h3>Error:</h3>
-        <p class="alert alert-danger">{{ error }}</p>
-    </div>
-    {% endif %}
+    <div id="errorMessage" class="alert alert-danger mt-4" style="display: none;"></div>
 </div>
 
-<!-- JavaScript Code -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     const numPointsSelector = document.getElementById('num_points');
@@ -70,16 +58,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Function to dynamically update input fields
     function updateInputs(numPoints) {
-        // Clear previous inputs
         dataInputDiv.innerHTML = '';
-
-        // Create a new table for the inputs
         const table = document.createElement('table');
         table.classList.add('table', 'table-bordered');
         for (let i = 0; i < numPoints; i++) {
             const row = document.createElement('tr');
-
-            // Create x input
             const xCell = document.createElement('td');
             const xInput = document.createElement('input');
             xInput.type = 'number';
@@ -90,7 +73,6 @@ document.addEventListener('DOMContentLoaded', function () {
             xCell.appendChild(xInput);
             row.appendChild(xCell);
 
-            // Create y input
             const yCell = document.createElement('td');
             const yInput = document.createElement('input');
             yInput.type = 'number';
@@ -113,6 +95,99 @@ document.addEventListener('DOMContentLoaded', function () {
     numPointsSelector.addEventListener('change', function () {
         const numPoints = parseInt(this.value);
         updateInputs(numPoints);
+    });
+
+    // Handle form submission
+    document.getElementById('polynomialForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+
+        const formData = new FormData(this);
+        const data = {};
+        formData.forEach((value, key) => {
+            data[key] = value;
+        });
+
+        fetch('/polynomial-curve-fitting', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                document.getElementById('errorMessage').textContent = data.error;
+                document.getElementById('errorMessage').style.display = 'block';
+                document.getElementById('resultsSection').style.display = 'none';
+                return;
+            }
+
+            document.getElementById('errorMessage').style.display = 'none';
+            document.getElementById('resultsSection').style.display = 'block';
+
+            // Display the equation
+            document.getElementById('equationResult').textContent = data.equation;
+
+            // Plot the chart
+            const ctx = document.getElementById('solutionChart').getContext('2d');
+            if (window.chart) {
+                window.chart.destroy();
+            }
+
+            // Round x-values to 2 decimal places
+            const roundedXValues = data.x_fit.map(x => parseFloat(x).toFixed(2));
+
+            window.chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: roundedXValues,
+                    datasets: [
+                        {
+                            label: 'Fitted Curve',
+                            data: data.y_fit,
+                            borderColor: 'red',
+                            borderWidth: 2,
+                            fill: false
+                        },
+                        {
+                            label: 'Data Points',
+                            data: data.x_data.map((x, i) => ({ x: parseFloat(x).toFixed(2), y: parseFloat(data.y_data[i]).toFixed(2) })),
+                            borderColor: 'blue',
+                            backgroundColor: 'blue',
+                            pointRadius: 5,
+                            pointHoverRadius: 7,
+                            type: 'scatter'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: {
+                            display: true,
+                            title: {
+                                display: true,
+                                text: 'X-axis'
+                            }
+                        },
+                        y: {
+                            display: true,
+                            title: {
+                                display: true,
+                                text: 'Y-axis'
+                            }
+                        }
+                    }
+                }
+            });
+        })
+        .catch(error => {
+            console.error('Error:', error); // Log the error to the console
+            document.getElementById('errorMessage').textContent = 'An error occurred. Please try again.';
+            document.getElementById('errorMessage').style.display = 'block';
+            document.getElementById('resultsSection').style.display = 'none';
+        });
     });
 });
 </script>
