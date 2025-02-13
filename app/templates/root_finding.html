@@ -1,6 +1,123 @@
 {% extends "base.html" %}
-
 {% block content %}
-<h2>Comparison of Root-Finding Methods</h2>
-<p>This page compares various root-finding methods in numerical analysis.</p>
+<div class="container mt-5">
+    <h2>Root-Finding Methods Comparison</h2>
+    <p class="text-muted">
+        Enter the common function f(x) for both methods.
+        For the Iteration Method, provide also the iteration function g(x) (  e.g. <strong>sqrt(3 - exp(-x))</strong>  ).
+        The initial guess is taken as the midpoint of the interval [a, b].
+    </p>
+
+    <form method="POST" class="row g-3">
+        <div class="col-md-12">
+            <label for="function" class="form-label">Function f(x):</label>
+            <input type="text" class="form-control" id="function" name="function"
+                   value="{{ form_data.function }}" placeholder="exp(-x) + x**2 - 3" required>
+        </div>
+        <div class="col-md-12">
+            <label for="g_function" class="form-label">Iteration Function g(x):</label>
+            <input type="text" class="form-control" id="g_function" name="g_function"
+                   value="{{ form_data.g_function }}" placeholder="sqrt(3 - exp(-x))" required>
+        </div>
+        <div class="col-md-4">
+            <label for="a" class="form-label">Interval start (a):</label>
+            <input type="number" step="any" class="form-control" id="a" name="a"
+                   value="{{ form_data.a }}" required>
+        </div>
+        <div class="col-md-4">
+            <label for="b" class="form-label">Interval end (b):</label>
+            <input type="number" step="any" class="form-control" id="b" name="b"
+                   value="{{ form_data.b }}" required>
+        </div>
+        <div class="col-md-4">
+            <label for="tol" class="form-label">Tolerance (tol):</label>
+            <input type="number" step="any" class="form-control" id="tol" name="tol"
+                   value="{{ form_data.tol }}" required>
+        </div>
+        <div class="col-md-4">
+            <label for="max_iter" class="form-label">Max Iterations:</label>
+            <input type="number" class="form-control" id="max_iter" name="max_iter"
+                   value="{{ form_data.max_iter }}" required>
+        </div>
+        <div class="col-md-4 d-grid gap-2">
+            <button type="submit" name="method" value="iteration" class="btn btn-info">Solve by Iteration Method</button>
+        </div>
+        <div class="col-md-4 d-grid gap-2">
+            <button type="submit" name="method" value="newton" class="btn btn-warning">Solve by Newton-Raphson Method</button>
+        </div>
+    </form>
+    
+
+    {% if result %}
+    <hr class="my-4">
+    <div class="alert alert-secondary">
+        <h5>General Information</h5>
+        <p><strong>Function f(x):</strong> {{ result.function_str }}</p>
+        <p><strong>Interval:</strong> [{{ result.a }}, {{ result.b }}]</p>
+        <p><strong>Tolerance:</strong> {{ result.tol }}</p>
+        <p><strong>Max Iterations:</strong> {{ result.max_iter }}</p>
+        <p><strong>Initial Guess (midpoint):</strong> {{ result.x0 }}</p>
+        {% if result.reference_root is not none %}
+            <p><strong>Reference Root (Sympy nsolve):</strong> {{ result.reference_root }}</p>
+        {% else %}
+            <p><strong>Reference Root (Sympy nsolve):</strong> Could not find reference root automatically.</p>
+        {% endif %}
+    </div>
+
+    {% if result.iteration_method %}
+    <div class="alert alert-info">
+        <h4>Iteration Method (Fixed-Point)</h4>
+        {% if result.iteration_method.root is not none %}
+            <p><strong>Root:</strong> {{ result.iteration_method.root }}</p>
+            <p><strong>Iterations:</strong> {{ result.iteration_method.iterations }}</p>
+            <p><strong>Relative Error:</strong>
+                {% if result.iteration_method.rel_error is not none %}
+                    {{ result.iteration_method.rel_error }}%
+                {% else %}
+                    &mdash;
+                {% endif %}
+            </p>
+        {% else %}
+            <p class="text-danger">Iteration Method did not converge or caused an error.</p>
+        {% endif %}
+        <details>
+          <summary>Show Iteration Steps</summary>
+          <pre>{{ result.iteration_method.steps | join("\n") }}</pre>
+        </details>
+        <p><em>Explanation:</em> For Fixed-Point Iteration, ensure that the chosen \(g(x)\) satisfies \(|g'(x)| &lt; 1\) near the root.</p>
+    </div>
+    {% endif %}
+
+    {% if result.newton_method %}
+    <div class="alert alert-warning">
+        <h4>Newton-Raphson Method</h4>
+        {% if result.newton_method.root is not none %}
+            <p><strong>Root:</strong> {{ result.newton_method.root }}</p>
+            <p><strong>Iterations:</strong> {{ result.newton_method.iterations }}</p>
+            <p><strong>Relative Error:</strong>
+                {% if result.newton_method.rel_error is not none %}
+                    {{ result.newton_method.rel_error }}%
+                {% else %}
+                    &mdash;
+                {% endif %}
+            </p>
+        {% else %}
+            <p class="text-danger">Newton-Raphson Method did not converge or caused an error.</p>
+        {% endif %}
+        <details>
+          <summary>Show Iteration Steps</summary>
+          <pre>{{ result.newton_method.steps | join("\n") }}</pre>
+        </details>
+        <p><strong>Computed Derivative f'(x):</strong> {{ result.newton_method.derivative }}</p>
+        <p><em>Explanation:</em> The Newton-Raphson Method uses the derivative to achieve quadratic convergence when the initial guess is close enough to the true root.</p>
+    </div>
+    {% endif %}
+    {% endif %}
+
+    {% if error %}
+    <div class="alert alert-danger">
+        <strong>Error:</strong> {{ error }}
+    </div>
+    {% endif %}
+</div>
 {% endblock %}

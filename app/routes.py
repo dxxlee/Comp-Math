@@ -6,7 +6,10 @@ from app.utils.polynomial_curve_fitting import fit_polynomial
 from app.utils.lagrange_interpolation import lagrange_interpolation
 from app.utils.euler import euler_method
 from app.utils.graphical import process_user_input
+from app.utils.root_finding import fixed_point_iteration, newton_raphson
 import numpy as np
+import sympy as sp
+
 
 main = Blueprint('main', __name__)
 
@@ -39,10 +42,6 @@ def graphical_method():
 
     # For GET requests, just render the form
     return render_template('graphical_method.html')
-
-@main.route('/root-finding')
-def root_finding():
-    return render_template('root_finding.html')
 
 
 @main.route('/gauss-seidel', methods=['GET', 'POST'])
@@ -204,3 +203,92 @@ def euler_view():  # Renamed from euler to euler_view to avoid conflicts
             return jsonify({'error': str(e)}), 400
 
     return render_template('euler_method.html')
+
+@main.route('/root-finding', methods=['GET', 'POST'])
+def root_finding():
+    result = {}  
+    error = None
+
+    form_data = {
+        "function": "",
+        "g_function": "",
+        "a": 0.0,
+        "b": 3.0,
+        "tol": 1e-6,
+        "max_iter": 50
+    }
+
+    if request.method == 'POST':
+        try:
+            f_str = request.form['function']
+            g_str = request.form['g_function']
+            a = float(request.form['a'])
+            b = float(request.form['b'])
+            tol = float(request.form['tol'])
+            max_iter = int(request.form['max_iter'])
+            method = request.form['method']
+            x0 = (a + b) / 2
+
+            form_data.update({
+                "function": f_str,
+                "g_function": g_str,
+                "a": a,
+                "b": b,
+                "tol": tol,
+                "max_iter": max_iter
+            })
+
+            x_sym = sp.Symbol('x', real=True)
+            reference_root = None
+            try:
+                sol = sp.nsolve(sp.sympify(f_str), x_sym, x0)
+                reference_root = float(sol)
+            except:
+                reference_root = None
+
+            if "reference_root" not in result:
+                result["reference_root"] = reference_root
+            if "function_str" not in result:
+                result["function_str"] = f_str
+            if "a" not in result:
+                result["a"] = a
+            if "b" not in result:
+                result["b"] = b
+            if "tol" not in result:
+                result["tol"] = tol
+            if "max_iter" not in result:
+                result["max_iter"] = max_iter
+            if "x0" not in result:
+                result["x0"] = x0
+
+            if method == "iteration":
+                iter_root, iter_count, iter_steps = fixed_point_iteration(g_str, x0, tol=tol, max_iter=max_iter)
+                iter_rel_error = (
+                    abs((iter_root - reference_root) / reference_root) * 100 if reference_root else None
+                )
+
+                result["iteration_method"] = {
+                    "root": iter_root,
+                    "iterations": iter_count,
+                    "steps": iter_steps,
+                    "rel_error": iter_rel_error
+                }
+
+            if method == "newton":
+                newton_root, newton_count, newton_steps, derivative_str = newton_raphson(f_str, x0, tol=tol, max_iter=max_iter)
+                newton_rel_error = (
+                    abs((newton_root - reference_root) / reference_root) * 100 if reference_root else None
+                )
+
+                result["newton_method"] = {
+                    "root": newton_root,
+                    "iterations": newton_count,
+                    "steps": newton_steps,
+                    "rel_error": newton_rel_error,
+                    "derivative": derivative_str
+                }
+
+        except Exception as e:
+            error = str(e)
+
+    return render_template("root_finding.html", result=result, error=error, form_data=form_data)
