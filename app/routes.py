@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, request, jsonify
 
+from app.utils.booles import booles_rule
 from app.utils.gauss_seidel import gauss_seidel
 from app.utils.lu_factorization import lu_factorization, solve_lu
 from app.utils.polynomial_curve_fitting import fit_polynomial
@@ -177,12 +178,25 @@ def lagrange_interpolation_route():
 
     return render_template('lagrange_interpolation.html', result=result, error=error)
 
-@main.route('/booles-rule')
-def booles_rule():
+@main.route('/booles-rule', methods=['GET', 'POST'])
+def calculate_booles():
+    if request.method == 'POST':
+        try:
+            data = request.get_json()
+            result = booles_rule(
+                data['func_str'],
+                float(data['a']),
+                float(data['b']),
+                int(data['n'])
+            )
+            return jsonify(result)
+        except Exception as e:
+            return jsonify({'error': str(e)}), 400
     return render_template('booles_rule.html')
 
+
 @main.route('/euler-method', methods=['GET', 'POST'])
-def euler_view():  # Renamed from euler to euler_view to avoid conflicts
+def euler_view():
     if request.method == 'POST':
         try:
             data = request.get_json()

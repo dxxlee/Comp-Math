@@ -1,6 +1,194 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h2>Boole’s Rule</h2>
-<p>This page explains Boole's rule for numerical integration.</p>
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="text-center mb-0">Boole's Rule Integration</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-5">
+                            <form id="integrationForm">
+                                <div class="mb-3">
+                                    <label for="function" class="form-label">Function f(x)</label>
+                                    <input type="text" class="form-control" id="function" name="function"
+                                           placeholder="e.g., x**2 + 2*x" required>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="lowerBound" class="form-label">Lower Bound (a)</label>
+                                        <input type="number" class="form-control" id="lowerBound" name="lowerBound"
+                                               step="any" required>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="upperBound" class="form-label">Upper Bound (b)</label>
+                                        <input type="number" class="form-control" id="upperBound" name="upperBound"
+                                               step="any" required>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="intervals" class="form-label">Number of Intervals (n)</label>
+                                    <select class="form-control" id="intervals" name="intervals" required>
+                                        <option value="4">4</option>
+                                        <option value="8">8</option>
+                                        <option value="12">12</option>
+                                        <option value="16">16</option>
+                                        <option value="20">20</option>
+                                    </select>
+                                    <small class="form-text text-muted">Must be a multiple of 4</small>
+                                </div>
+                                <button type="submit" class="btn btn-primary w-100">Calculate</button>
+                            </form>
+
+                            <div id="result" class="alert alert-success mt-3 d-none">
+                                <h5 class="mb-2">Result:</h5>
+                                <p class="mb-0">Approximate value of the integral: <br><strong id="integralValue"></strong></p>
+                            </div>
+                            <div id="errorMessage" class="alert alert-danger mt-3 d-none"></div>
+                        </div>
+
+                        <div class="col-md-7">
+                            <div style="height: 300px; position: relative;">
+                                <canvas id="functionPlot"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+let chartInstance = null;
+
+document.getElementById('integrationForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    const form = {
+        func_str: document.getElementById('function').value,
+        a: parseFloat(document.getElementById('lowerBound').value),
+        b: parseFloat(document.getElementById('upperBound').value),
+        n: parseInt(document.getElementById('intervals').value)
+    };
+
+    try {
+        const response = await fetch('/booles-rule', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(form)
+        });
+
+        const data = await response.json();
+
+        if (data.error) {
+            showError(data.error);
+            return;
+        }
+
+        // Show result
+        document.getElementById('result').classList.remove('d-none');
+        document.getElementById('integralValue').textContent = data.integral.toFixed(6);
+
+        // Destroy existing chart if it exists
+        if (chartInstance) {
+            chartInstance.destroy();
+        }
+
+        // Create new chart
+        const ctx = document.getElementById('functionPlot').getContext('2d');
+        chartInstance = new Chart(ctx, {
+            type: 'line',
+            data: {
+                datasets: [
+                    {
+                        label: 'f(x)',
+                        data: data.x_values.map((x, i) => ({
+                            x: x,
+                            y: data.y_values[i]
+                        })),
+                        borderColor: 'rgb(75, 192, 192)',
+                        tension: 0.4,
+                        pointRadius: 0
+                    },
+                    {
+                        label: 'Sample Points',
+                        data: data.sample_points.x.map((x, i) => ({
+                            x: x,
+                            y: data.sample_points.y[i]
+                        })),
+                        borderColor: 'rgb(255, 99, 132)',
+                        backgroundColor: 'rgb(255, 99, 132)',
+                        pointRadius: 4,
+                        showLine: false
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    intersect: false,
+                    mode: 'index'
+                },
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Function Plot with Sample Points',
+                        font: {
+                            size: 14
+                        }
+                    },
+                    legend: {
+                        position: 'top',
+                        labels: {
+                            boxWidth: 20
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return `${context.dataset.label}: (${context.parsed.x.toFixed(3)}, ${context.parsed.y.toFixed(3)})`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        type: 'linear',
+                        display: true,
+                        title: {
+                            display: true,
+                            text: 'x'
+                        }
+                    },
+                    y: {
+                        display: true,
+                        title: {
+                            display: true,
+                            text: 'f(x)'
+                        }
+                    }
+                }
+            }
+        });
+
+    } catch (error) {
+        showError('An error occurred while calculating the integral.');
+    }
+});
+
+function showError(message) {
+    const errorDiv = document.getElementById('errorMessage');
+    errorDiv.textContent = message;
+    errorDiv.classList.remove('d-none');
+    document.getElementById('result').classList.add('d-none');
+}
+</script>
 {% endblock %}
