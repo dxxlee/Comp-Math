@@ -1,6 +1,5 @@
 import numpy as np
 
-
 def format_polynomial(coefficients):
     """
     Formats the polynomial equation in a human-readable form.

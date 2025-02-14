@@ -11,8 +11,7 @@ from app.utils.root_finding import fixed_point_iteration, newton_raphson
 import numpy as np
 import sympy as sp
 
-
-main = Blueprint('main', __name__)
+main = Blueprint('main', __name__)  # Create a Flask blueprint for route management
 
 @main.route('/')
 def index():
@@ -92,14 +91,14 @@ def gauss_seidel_route():
 def lu_factorization_route():
     result = None
     error = None
-    matrix_size = 3  # Размер матрицы по умолчанию
+    matrix_size = 3  # Default matrix size
 
     if request.method == 'POST':
         try:
-            # Получаем размер матрицы от пользователя
+            # Getting the matrix size from the user
             matrix_size = int(request.form['matrix_size'])
 
-            # Считываем матрицу A
+            # Reading matrix A
             A = []
             for i in range(matrix_size):
                 row = []
@@ -108,10 +107,10 @@ def lu_factorization_route():
                     row.append(value)
                 A.append(row)
 
-            # Считываем вектор b
+            # Reading vector b
             b = [float(request.form[f'b_{i}']) for i in range(matrix_size)]
 
-            # Применяем LU-разложение
+            # Applying LU decomposition
             L, U = lu_factorization(np.array(A))
             x = solve_lu(L, U, np.array(b))
             check = np.dot(A, x)
@@ -181,48 +180,53 @@ def lagrange_interpolation_route():
 def calculate_booles():
     if request.method == 'POST':
         try:
-            data = request.get_json()
+            data = request.get_json()  # Parse JSON request data
+            # Compute integral using Boole’s Rule
             result = booles_rule(
-                data['func_str'],
-                float(data['a']),
-                float(data['b']),
-                int(data['n'])
+                data['func_str'],  # Function as a string
+                float(data['a']),  # Lower bound
+                float(data['b']),  # Upper bound
+                int(data['n'])     # Number of subintervals (must be multiple of 4)
             )
-            return jsonify(result)
+            return jsonify(result)  # Return computed results as JSON
         except Exception as e:
-            return jsonify({'error': str(e)}), 400
-    return render_template('booles_rule.html')
+            return jsonify({'error': str(e)}), 400  # Handle errors gracefully
+    return render_template('booles_rule.html')  # Render the input form if GET request
+
 
 
 @main.route('/euler-method', methods=['GET', 'POST'])
 def euler_view():
     if request.method == 'POST':
         try:
-            data = request.get_json()
-            x0 = float(data['x0'])
-            y0 = float(data['y0'])
-            h = float(data['h'])
-            n = int(data['n'])
-            equation = data['equation']
+            data = request.get_json()  # Parse JSON request data
+            # Extract input parameters
+            x0 = float(data['x0'])  # Initial x-value
+            y0 = float(data['y0'])  # Initial y-value
+            h = float(data['h'])  # Step size
+            n = int(data['n'])  # Number of iterations
+            equation = data['equation']  # Function f(x, y) as a string
 
-            f = lambda x, y: eval(equation)
+            f = lambda x, y: eval(equation)  # Convert equation string to a function
+
+            # Solve using Euler's method
             x_values, y_values = euler_method(f, x0, y0, h, n)
 
             return jsonify({
-                'x_values': x_values,
-                'y_values': y_values
+                'x_values': x_values,  # Computed x-values
+                'y_values': y_values   # Computed y-values
             })
-
         except Exception as e:
-            return jsonify({'error': str(e)}), 400
+            return jsonify({'error': str(e)}), 400  # Handle errors gracefully
+    return render_template('euler_method.html')  # Render input form for GET request
 
-    return render_template('euler_method.html')
 
 @main.route('/root-finding', methods=['GET', 'POST'])
 def root_finding():
-    result = {}  
-    error = None
+    result = {}  # Stores computation results
+    error = None  # For error handling
 
+    # Default form values
     form_data = {
         "function": "",
         "g_function": "",
@@ -234,6 +238,7 @@ def root_finding():
 
     if request.method == 'POST':
         try:
+            # Extract user input
             f_str = request.form['function']
             g_str = request.form['g_function']
             a = float(request.form['a'])
@@ -243,6 +248,7 @@ def root_finding():
             method = request.form['method']
             x0 = (a + b) / 2
 
+            # Update form data for display
             form_data.update({
                 "function": f_str,
                 "g_function": g_str,
@@ -252,6 +258,7 @@ def root_finding():
                 "max_iter": max_iter
             })
 
+            # Compute reference root using SymPy
             x_sym = sp.Symbol('x', real=True)
             reference_root = None
             try:
@@ -260,6 +267,7 @@ def root_finding():
             except:
                 reference_root = None
 
+            # Store reference values
             if "reference_root" not in result:
                 result["reference_root"] = reference_root
             if "function_str" not in result:
@@ -275,6 +283,7 @@ def root_finding():
             if "x0" not in result:
                 result["x0"] = x0
 
+            # Fixed-Point Iteration
             if method == "iteration":
                 iter_root, iter_count, iter_steps = fixed_point_iteration(g_str, x0, tol=tol, max_iter=max_iter)
                 iter_rel_error = (
@@ -288,6 +297,7 @@ def root_finding():
                     "rel_error": iter_rel_error
                 }
 
+            # Newton-Raphson Method
             if method == "newton":
                 newton_root, newton_count, newton_steps, derivative_str = newton_raphson(f_str, x0, tol=tol, max_iter=max_iter)
                 newton_rel_error = (
@@ -303,6 +313,6 @@ def root_finding():
                 }
 
         except Exception as e:
-            error = str(e)
+            error = str(e) # Handle errors
 
     return render_template("root_finding.html", result=result, error=error, form_data=form_data)

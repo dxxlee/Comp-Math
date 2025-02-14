@@ -1,6 +1,5 @@
 import numpy as np
 
-
 def gauss_seidel(A, b, x0, tol=1e-6, max_iter=100):
     """
     Solves a system of linear equations using the Gauss-Seidel iterative method.
