@@ -68,6 +68,8 @@ let chartInstance = null;
 
 document.getElementById('integrationForm').addEventListener('submit', async function(e) {
     e.preventDefault();
+    // Скрываем сообщение об ошибке при новом сабмите
+    document.getElementById('errorMessage').classList.add('d-none');
 
     const form = {
         func_str: document.getElementById('function').value,
@@ -92,16 +94,16 @@ document.getElementById('integrationForm').addEventListener('submit', async func
             return;
         }
 
-        // Show result
+        // Показываем результат
         document.getElementById('result').classList.remove('d-none');
         document.getElementById('integralValue').textContent = data.integral.toFixed(6);
 
-        // Destroy existing chart if it exists
+        // Удаляем старую диаграмму, если она уже существует
         if (chartInstance) {
             chartInstance.destroy();
         }
 
-        // Create new chart
+        // Создаем новую диаграмму
         const ctx = document.getElementById('functionPlot').getContext('2d');
         chartInstance = new Chart(ctx, {
             type: 'line',
@@ -190,5 +192,15 @@ function showError(message) {
     errorDiv.classList.remove('d-none');
     document.getElementById('result').classList.add('d-none');
 }
+
+// При изменении любого поля формы скрываем сообщение об ошибке
+document.querySelectorAll('#integrationForm input, #integrationForm select').forEach(element => {
+    element.addEventListener('input', () => {
+        document.getElementById('errorMessage').classList.add('d-none');
+    });
+    element.addEventListener('change', () => {
+        document.getElementById('errorMessage').classList.add('d-none');
+    });
+});
 </script>
 {% endblock %}

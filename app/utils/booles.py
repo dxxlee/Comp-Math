@@ -8,9 +8,24 @@ def booles_rule(func_str, a, b, n):
     if n % 4 != 0:
         raise ValueError("n must be a multiple of 4")  # Ensures correct application of Boole's Rule
 
-    # Define the function dynamically from the given string input.
-    # This allows users to input a mathematical function as a string (e.g., "np.sin(x)").
-    func = lambda x: eval(func_str)
+    # Create a dictionary of safe mathematical constants and functions
+    safe_dict = {
+        'np': np,
+        'e': np.e,  # Add mathematical constant e
+        'pi': np.pi,  # Also add pi for completeness
+        'sin': np.sin,
+        'cos': np.cos,
+        'tan': np.tan,
+        'exp': np.exp,
+        'log': np.log,
+        'sqrt': np.sqrt
+    }
+
+    # Define the function dynamically from the given string input with safe evaluation context
+    def func(x):
+        # Add x to the safe dictionary for evaluation
+        safe_dict['x'] = x
+        return eval(func_str, {"__builtins__": {}}, safe_dict)
 
     # Generate `n+1` equally spaced points between `a` and `b`.
     x = np.linspace(a, b, n + 1)

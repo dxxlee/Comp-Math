@@ -164,7 +164,7 @@ def calculate_booles():
     if request.method == 'POST':
         try:
             data = request.get_json()  # Parse JSON request data
-            # Compute integral using Boole’s Rule
+            # Compute integral using Boole's Rule
             result = booles_rule(
                 data['func_str'],  # Function as a string
                 float(data['a']),  # Lower bound
