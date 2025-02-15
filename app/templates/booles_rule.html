@@ -15,7 +15,7 @@
                                 <div class="mb-3">
                                     <label for="function" class="form-label">Function f(x)</label>
                                     <input type="text" class="form-control" id="function" name="function"
-                                           placeholder="e.g., x**2 + 2*x" required>
+                                           placeholder="e.g., e ** -x" required>
                                 </div>
                                 <div class="row">
                                     <div class="col-md-6 mb-3">
@@ -68,7 +68,6 @@ let chartInstance = null;
 
 document.getElementById('integrationForm').addEventListener('submit', async function(e) {
     e.preventDefault();
-    // Скрываем сообщение об ошибке при новом сабмите
     document.getElementById('errorMessage').classList.add('d-none');
 
     const form = {
@@ -94,16 +93,13 @@ document.getElementById('integrationForm').addEventListener('submit', async func
             return;
         }
 
-        // Показываем результат
         document.getElementById('result').classList.remove('d-none');
         document.getElementById('integralValue').textContent = data.integral.toFixed(6);
 
-        // Удаляем старую диаграмму, если она уже существует
         if (chartInstance) {
             chartInstance.destroy();
         }
 
-        // Создаем новую диаграмму
         const ctx = document.getElementById('functionPlot').getContext('2d');
         chartInstance = new Chart(ctx, {
             type: 'line',
@@ -193,7 +189,6 @@ function showError(message) {
     document.getElementById('result').classList.add('d-none');
 }
 
-// При изменении любого поля формы скрываем сообщение об ошибке
 document.querySelectorAll('#integrationForm input, #integrationForm select').forEach(element => {
     element.addEventListener('input', () => {
         document.getElementById('errorMessage').classList.add('d-none');
