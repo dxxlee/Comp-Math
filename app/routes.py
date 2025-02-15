@@ -8,6 +8,7 @@ from app.utils.lagrange_interpolation import lagrange_interpolation
 from app.utils.euler import euler_method
 from app.utils.graphical import process_user_input
 from app.utils.root_finding import fixed_point_iteration, newton_raphson
+from app.utils.euler import parse_equation
 import numpy as np
 import sympy as sp
 
@@ -176,12 +177,12 @@ def calculate_booles():
     return render_template('booles_rule.html')  # Render the input form if GET request
 
 
-
 @main.route('/euler-method', methods=['GET', 'POST'])
 def euler_view():
     if request.method == 'POST':
         try:
-            data = request.get_json()  # Parse JSON request data
+            data = request.get_json()
+
             # Extract input parameters
             x0 = float(data['x0'])  # Initial x-value
             y0 = float(data['y0'])  # Initial y-value
@@ -189,7 +190,11 @@ def euler_view():
             n = int(data['n'])  # Number of iterations
             equation = data['equation']  # Function f(x, y) as a string
 
-            f = lambda x, y: eval(equation)  # Convert equation string to a function
+            # Parse the equation
+            derivative_expr, x_sym, y_sym = parse_equation(equation)
+
+            # Convert equation string to a function for numerical equation
+            f = sp.lambdify((x_sym, y_sym), derivative_expr, modules=['numpy'])
 
             # Solve using Euler's method
             x_values, y_values = euler_method(f, x0, y0, h, n)
@@ -198,8 +203,10 @@ def euler_view():
                 'x_values': x_values,  # Computed x-values
                 'y_values': y_values   # Computed y-values
             })
+
         except Exception as e:
             return jsonify({'error': str(e)}), 400  # Handle errors gracefully
+        
     return render_template('euler_method.html')  # Render input form for GET request
 
 
