@@ -1,5 +1,8 @@
 # **Computational Mathematics Final Project**
 
+🚀 **Note:** This project is actively developed on the `dev` branch.
+
+
 ## 📌 Overview
 This project is a web-based computational mathematics tool that implements various numerical methods for solving mathematical problems. It provides a user-friendly interface to visualize and analyze different numerical techniques.
 
